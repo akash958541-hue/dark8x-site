@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DARK8X WORLD — Premium App Projects</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+:root { --bg:#050508;--surface:#0d0d14;--card:#11111c;--border:#1e1e30;--accent:#ff3c00;--accent2:#ff8c00;--gold:#ffd700;--text:#e8e8f0;--muted:#5a5a7a;--green:#00ff88; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:16px;overflow-x:hidden;cursor:crosshair;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:0.4;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px);pointer-events:none;z-index:9998;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:rgba(5,5,8,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);}
+.nav-logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-logo span{color:var(--gold);-webkit-text-fill-color:var(--gold);}
+.nav-links{display:flex;gap:32px;list-style:none;}
+.nav-links a{font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--muted);text-decoration:none;letter-spacing:2px;text-transform:uppercase;transition:color 0.2s;}
+.nav-links a:hover{color:var(--accent);}
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:120px 20px 80px;position:relative;overflow:hidden;}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 60%,rgba(255,60,0,0.12) 0%,transparent 70%),radial-gradient(ellipse 40% 30% at 20% 20%,rgba(255,140,0,0.06) 0%,transparent 60%);}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,60,0,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,60,0,0.04) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);}
+.hero-content{position:relative;z-index:2;max-width:800px;}
+.hero-tag{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:4px;color:var(--accent);margin-bottom:24px;display:inline-block;border:1px solid rgba(255,60,0,0.3);padding:6px 16px;animation:fadeUp 0.6s ease both;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(60px,12vw,120px);line-height:0.9;letter-spacing:6px;margin-bottom:8px;animation:fadeUp 0.6s 0.1s ease both;}
+.hero-title .line1{color:var(--text);}
+.hero-title .line2{background:linear-gradient(90deg,var(--accent),var(--accent2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hero-sub{font-size:18px;color:var(--muted);letter-spacing:2px;margin:24px 0 40px;font-weight:500;animation:fadeUp 0.6s 0.2s ease both;}
+.hero-cta{display:inline-flex;align-items:center;gap:12px;background:var(--accent);color:white;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:3px;padding:14px 40px;text-decoration:none;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px));transition:all 0.2s;animation:fadeUp 0.6s 0.3s ease both;cursor:pointer;border:none;}
+.hero-cta:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 12px 40px rgba(255,60,0,0.4);}
+.stats{display:flex;justify-content:center;gap:60px;padding:32px 40px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface);flex-wrap:wrap;}
+.stat-item{text-align:center;}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--accent);letter-spacing:2px;display:block;}
+.stat-label{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;}
+section{padding:80px 40px;max-width:1200px;margin:0 auto;}
+.section-header{margin-bottom:60px;}
+.section-tag{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--accent);text-transform:uppercase;margin-bottom:12px;display:block;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,6vw,64px);letter-spacing:4px;color:var(--text);}
+.section-line{width:60px;height:3px;background:linear-gradient(90deg,var(--accent),transparent);margin-top:16px;}
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;}
+.project-card{background:var(--card);border:1px solid var(--border);position:relative;overflow:hidden;transition:all 0.3s;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));}
+.project-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transform:scaleX(0);transition:transform 0.3s;transform-origin:left;}
+.project-card:hover{border-color:rgba(255,60,0,0.4);transform:translateY(-4px);}
+.project-card:hover::before{transform:scaleX(1);}
+.card-badge{position:absolute;top:16px;right:16px;background:var(--accent);color:white;font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;padding:4px 10px;text-transform:uppercase;}
+.card-icon{padding:36px 32px 20px;font-size:48px;}
+.card-body{padding:0 32px 32px;}
+.card-cat{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--accent2);text-transform:uppercase;margin-bottom:8px;}
+.card-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--text);margin-bottom:12px;line-height:1;}
+.card-desc{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:20px;font-weight:500;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:20px;border-top:1px solid var(--border);}
+.card-price{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold);letter-spacing:2px;line-height:1;}
+.card-price span{font-size:14px;color:var(--muted);font-family:'Rajdhani',sans-serif;display:block;font-weight:500;letter-spacing:1px;}
+.buy-btn{background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:3px;padding:10px 24px;cursor:pointer;transition:all 0.2s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));}
+.buy-btn:hover{background:var(--accent);color:white;box-shadow:0 0 20px rgba(255,60,0,0.4);}
+.included-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;}
+.included-item{background:var(--card);border:1px solid var(--border);padding:24px;text-align:center;transition:border-color 0.2s;}
+.included-item:hover{border-color:rgba(255,60,0,0.3);}
+.included-icon{font-size:32px;margin-bottom:12px;display:block;}
+.included-title{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:2px;color:var(--text);margin-bottom:6px;}
+.included-desc{font-size:12px;color:var(--muted);font-family:'Share Tech Mono',monospace;}
+.contact-section{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;padding:80px 40px;}
+.contact-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,6vw,64px);letter-spacing:4px;margin-bottom:16px;}
+.contact-sub{color:var(--muted);font-size:16px;font-weight:500;margin-bottom:40px;letter-spacing:1px;}
+.contact-links{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;}
+.contact-link{display:flex;align-items:center;gap:10px;padding:14px 28px;border:1px solid var(--border);color:var(--text);text-decoration:none;font-family:'Share Tech Mono',monospace;font-size:13px;letter-spacing:2px;transition:all 0.2s;background:var(--card);}
+.contact-link:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,60,0,0.05);}
+footer{text-align:center;padding:32px 40px;border-top:1px solid var(--border);}
+.footer-logo{font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:4px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;}
+.footer-text{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:var(--muted);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);}
+.modal-overlay.active{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);max-width:480px;width:100%;padding:40px;position:relative;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));animation:scaleIn 0.2s ease;}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;transition:color 0.2s;}
+.modal-close:hover{color:var(--accent);}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;margin-bottom:8px;}
+.modal-subtitle{font-size:14px;color:var(--muted);margin-bottom:28px;font-weight:500;}
+.form-group{margin-bottom:16px;}
+.form-label{font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:8px;}
+.form-input{width:100%;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:12px 16px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--accent);}
+.modal-price{display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--surface);border:1px solid var(--border);margin-bottom:24px;}
+.modal-price-label{font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--muted);}
+.modal-price-amount{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold);letter-spacing:2px;}
+.pay-btn{width:100%;background:var(--accent);border:none;color:white;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:4px;padding:16px;cursor:pointer;transition:all 0.2s;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));}
+.pay-btn:hover{background:var(--accent2);box-shadow:0 8px 30px rgba(255,60,0,0.4);}
+.pay-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.info-box{background:rgba(255,60,0,0.06);border:1px solid rgba(255,60,0,0.2);padding:12px 16px;margin-bottom:20px;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--accent2);letter-spacing:1px;line-height:1.6;}
+.loading-state{text-align:center;padding:60px 20px;font-family:'Share Tech Mono',monospace;font-size:13px;color:var(--muted);letter-spacing:2px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.glitch{position:relative;}
+.glitch::after{content:attr(data-text);position:absolute;left:2px;top:0;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;clip-path:polygon(0 30%,100% 30%,100% 50%,0 50%);animation:glitch 4s infinite;opacity:0.5;}
+@keyframes glitch{0%,90%,100%{transform:translate(0);opacity:0}91%{transform:translate(-2px,1px);opacity:0.5}93%{transform:translate(2px,-1px);opacity:0.5}95%{transform:translate(0);opacity:0}}
+.ticker-wrap{overflow:hidden;background:var(--accent);padding:8px 0;}
+.ticker{display:flex;animation:ticker 20s linear infinite;width:max-content;}
+.ticker-item{font-family:'Share Tech Mono',monospace;font-size:12px;letter-spacing:3px;color:white;white-space:nowrap;padding:0 40px;text-transform:uppercase;}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(max-width:768px){nav{padding:14px 20px}.nav-links{display:none}section{padding:60px 20px}.stats{gap:32px}.hero{padding:100px 20px 60px}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">DARK8X <span>WORLD</span></div>
+  <ul class="nav-links">
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#includes">Includes</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+<div style="margin-top:64px;" class="ticker-wrap">
+  <div class="ticker">
+    <span class="ticker-item">⚡ PREMIUM SOURCE CODE</span>
+    <span class="ticker-item">🔥 FIREBASE POWERED</span>
+    <span class="ticker-item">🎮 GAMING APPS</span>
+    <span class="ticker-item">💰 REAL MONEY READY</span>
+    <span class="ticker-item">📱 MOBILE FIRST</span>
+    <span class="ticker-item">⚡ PREMIUM SOURCE CODE</span>
+    <span class="ticker-item">🔥 FIREBASE POWERED</span>
+    <span class="ticker-item">🎮 GAMING APPS</span>
+    <span class="ticker-item">💰 REAL MONEY READY</span>
+    <span class="ticker-item">📱 MOBILE FIRST</span>
+  </div>
+</div>
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-tag">// PREMIUM APP PROJECTS //</div>
+    <h1 class="hero-title">
+      <div class="line1">DARK8X</div>
+      <div class="line2 glitch" data-text="WORLD">WORLD</div>
+    </h1>
+    <p class="hero-sub">Battle-tested Firebase apps. Production ready. Yours instantly.</p>
+    <a href="#projects" class="hero-cta">⚡ VIEW PROJECTS</a>
+  </div>
+</div>
+<div class="stats">
+  <div class="stat-item"><span class="stat-num" id="productCount">...</span><span class="stat-label">Projects Available</span></div>
+  <div class="stat-item"><span class="stat-num">100%</span><span class="stat-label">Source Code</span></div>
+  <div class="stat-item"><span class="stat-num">Firebase</span><span class="stat-label">Powered Backend</span></div>
+  <div class="stat-item"><span class="stat-num">24H</span><span class="stat-label">Support</span></div>
+</div>
+<section id="projects">
+  <div class="section-header">
+    <span class="section-tag">// 01. PRODUCTS</span>
+    <h2 class="section-title">AVAILABLE PROJECTS</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="projects-grid" id="projectsGrid">
+    <div class="loading-state">// LOADING PROJECTS... //</div>
+  </div>
+</section>
+<div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+<section id="includes">
+  <div class="section-header">
+    <span class="section-tag">// 02. PACKAGE</span>
+    <h2 class="section-title">WHAT YOU GET</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="included-grid">
+    <div class="included-item"><span class="included-icon">📁</span><div class="included-title">FULL SOURCE</div><div class="included-desc">100% source code</div></div>
+    <div class="included-item"><span class="included-icon">🔥</span><div class="included-title">FIREBASE SETUP</div><div class="included-desc">Firestore rules + guide</div></div>
+    <div class="included-item"><span class="included-icon">📖</span><div class="included-title">SETUP GUIDE</div><div class="included-desc">Step-by-step docs</div></div>
+    <div class="included-item"><span class="included-icon">🛠️</span><div class="included-title">SUPPORT</div><div class="included-desc">24hr WhatsApp support</div></div>
+    <div class="included-item"><span class="included-icon">⚡</span><div class="included-title">INSTANT ACCESS</div><div class="included-desc">Auto-delivery after payment</div></div>
+    <div class="included-item"><span class="included-icon">🔄</span><div class="included-title">UPDATES</div><div class="included-desc">Bug fix updates included</div></div>
+  </div>
+</section>
+</div>
+<div class="contact-section" id="contact">
+  <h2 class="contact-title">GOT QUESTIONS?</h2>
+  <p class="contact-sub">DM before buying — we'll sort it out.</p>
+  <div class="contact-links">
+    <a href="https://wa.me/919042517520" class="contact-link" target="_blank">💬 WHATSAPP</a>
+    <a href="https://t.me/dark8x" class="contact-link" target="_blank">✈️ TELEGRAM</a>
+    <a href="mailto:akash958541@gmail.com" class="contact-link">📧 EMAIL</a>
+  </div>
+</div>
+<footer>
+  <div class="footer-logo">DARK8X WORLD</div>
+  <div class="footer-text">© 2025 DARK8X WORLD — ALL RIGHTS RESERVED</div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="buyModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">SECURE CHECKOUT</div>
+    <div class="modal-subtitle" id="modalProductName"></div>
+    <div class="form-group">
+      <label class="form-label">YOUR NAME</label>
+      <input class="form-input" type="text" id="buyerName" placeholder="Enter your name"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">EMAIL (for delivery)</label>
+      <input class="form-input" type="email" id="buyerEmail" placeholder="yourmail@gmail.com"/>
+    </div>
+    <div class="form-group">
+      <label class="form-label">WHATSAPP NUMBER</label>
+      <input class="form-input" type="tel" id="buyerPhone" placeholder="9XXXXXXXXX"/>
+    </div>
+    <div class="info-box">⚡ Secure payment via Cashfree.<br/>Download link auto opens after payment!</div>
+    <div class="modal-price">
+      <span class="modal-price-label">TOTAL AMOUNT</span>
+      <span class="modal-price-amount" id="modalPrice">₹999</span>
+    </div>
+    <button class="pay-btn" id="payBtn" onclick="startPayment()">⚡ PAY NOW</button>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCEDNeRd8jqV36PnKdV49F3QhjfI_CwlFw",
+  authDomain: "dark-panel-db812.firebaseapp.com",
+  projectId: "dark-panel-db812",
+  storageBucket: "dark-panel-db812.firebasestorage.app",
+  messagingSenderId: "1026987423972",
+  appId: "1:1026987423972:web:b6c16ab1dbac907764d4f1"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let currentProduct = null;
+
+async function loadProducts() {
+  try {
+    const snap = await db.collection('products').orderBy('createdAt','desc').get();
+    const grid = document.getElementById('projectsGrid');
+    if (snap.empty) { grid.innerHTML = '<div class="loading-state">// NO PRODUCTS YET //</div>'; return; }
+    document.getElementById('productCount').textContent = snap.size + '+';
+    grid.innerHTML = '';
+    snap.forEach(doc => {
+      const p = doc.data();
+      const card = document.createElement('div');
+      card.className = 'project-card';
+      card.innerHTML = `
+        ${p.badge ? `<div class="card-badge">${p.badge}</div>` : ''}
+        <div class="card-icon">📦</div>
+        <div class="card-body">
+          <div class="card-cat">${p.category||'App Project'}</div>
+          <div class="card-title">${p.name}</div>
+          <p class="card-desc">${p.description||''}</p>
+          <div class="card-footer">
+            <div class="card-price">₹${p.price}<span>One-time payment</span></div>
+            <button class="buy-btn" onclick="openBuyModal('${doc.id}','${p.name}',${p.price})">BUY NOW</button>
+          </div>
+        </div>`;
+      grid.appendChild(card);
+    });
+  } catch(e) { console.error(e); }
+}
+
+function openBuyModal(id, name, price) {
+  currentProduct = { id, name, price };
+  document.getElementById('modalProductName').textContent = 
