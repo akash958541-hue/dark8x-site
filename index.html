@@ -227,7 +227,7 @@ let currentProduct = null;
 
 async function loadProducts() {
   try {
-    const snap = await db.collection('products').orderBy('createdAt','desc').get();
+    const snap = await db.collection('products').get();
     const grid = document.getElementById('projectsGrid');
     if (snap.empty) { grid.innerHTML = '<div class="loading-state">// NO PRODUCTS YET //</div>'; return; }
     document.getElementById('productCount').textContent = snap.size + '+';
@@ -255,4 +255,117 @@ async function loadProducts() {
 
 function openBuyModal(id, name, price) {
   currentProduct = { id, name, price };
-  document.getElementById('modalProductName').textContent = 
+  document.getElementById('modalProductName').textContent = name;
+  document.getElementById('modalPrice').textContent = '₹' + price;
+  ['buyerName','buyerEmail','buyerPhone'].forEach(i => document.getElementById(i).value = '');
+  document.getElementById('buyModal').classList.add('active');
+}
+
+function closeModal() { document.getElementById('buyModal').classList.remove('active'); }
+document.getElementById('buyModal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+
+async function startPayment() {
+  const name = document.getElementById('buyerName').value.trim();
+  const email = document.getElementById('buyerEmail').value.trim();
+  const phone = document.getElementById('buyerPhone').value.trim();
+
+  if (!name||!email||!phone) { alert('Please fill all fields!'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { alert('Enter valid email!'); return; }
+  if (phone.length < 10) { alert('Enter valid WhatsApp number!'); return; }
+
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ CREATING PAYMENT...';
+
+  try {
+    // Get product from Firebase
+    const doc = await db.collection('products').doc(currentProduct.id).get();
+    const p = doc.data();
+
+    // Save pending order
+    const orderRef = await db.collection('orders').add({
+      productId: currentProduct.id,
+      productName: p.name,
+      price: p.price,
+      buyerName: name,
+      buyerEmail: email,
+      buyerPhone: phone,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Call Netlify Function — create unique Cashfree payment link
+    const res = await fetch('/.netlify/functions/create-payment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerName: name,
+        customerEmail: email,
+        customerPhone: phone,
+        productName: p.name,
+        amount: p.price,
+        returnUrl: `https://dark8x.netlify.app?status=SUCCESS&orderId=${orderRef.id}`
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.link_url) {
+      localStorage.setItem('pending_order_id', orderRef.id);
+      localStorage.setItem('pending_product_id', currentProduct.id);
+      localStorage.setItem('pending_email', email);
+      window.location.href = data.link_url;
+    } else {
+      alert('Payment error! Try again.');
+      btn.disabled = false;
+      btn.textContent = '⚡ PAY NOW';
+    }
+  } catch(e) {
+    alert('Error: ' + e.message);
+    btn.disabled = false;
+    btn.textContent = '⚡ PAY NOW';
+  }
+}
+
+// After payment return
+window.addEventListener('load', async function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const status = urlParams.get('status');
+  const orderId = localStorage.getItem('pending_order_id');
+  const productId = localStorage.getItem('pending_product_id');
+
+  if (status === 'SUCCESS' && orderId && productId) {
+    try {
+      const doc = await db.collection('products').doc(productId).get();
+      if (doc.exists) {
+        const p = doc.data();
+        // Update order paid
+        await db.collection('orders').doc(orderId).update({
+          status: 'paid',
+          paidAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        localStorage.removeItem('pending_order_id');
+        localStorage.removeItem('pending_product_id');
+        localStorage.removeItem('pending_email');
+        setTimeout(() => { window.open(p.downloadLink,'_blank'); showSuccess(p.name); }, 500);
+      }
+    } catch(e) { console.error(e); }
+  }
+
+  loadProducts();
+});
+
+function showSuccess(name) {
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);';
+  div.innerHTML = `<div style="background:#11111c;border:1px solid #1e1e30;padding:48px;text-align:center;max-width:440px;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px));">
+    <div style="font-size:64px;margin-bottom:20px;">✅</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px;color:#00ff88;margin-bottom:12px;">PAYMENT SUCCESS!</div>
+    <div style="font-size:14px;color:#5a5a7a;margin-bottom:24px;">${name} — Download started!</div>
+    <button onclick="this.closest('div[style]').remove()" style="background:#00ff88;border:none;color:#000;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:3px;padding:14px 36px;cursor:pointer;">✓ CLOSE</button>
+  </div>`;
+  document.body.appendChild(div);
+}
+</script>
+</body>
+</html>
