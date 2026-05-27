@@ -5,13 +5,15 @@ exports.handler = async function(event, context) {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
-  const ALLOWED_ORIGIN = 'https://dark8x.netlify.app';
-
   const headers = {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json'
   };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
 
   try {
     const body = JSON.parse(event.body);
@@ -21,7 +23,15 @@ exports.handler = async function(event, context) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing required fields' }) };
     }
 
-    const linkId = 'DARK8X_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5).toUpperCase();
+    // ✅ Environment Variables use பண்றோம் — API keys secure!
+    const APP_ID = process.env.CASHFREE_APP_ID;
+    const SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
+
+    if (!APP_ID || !SECRET_KEY) {
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'API keys not configured' }) };
+    }
+
+    const linkId = 'D8X_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5).toUpperCase();
 
     const payload = JSON.stringify({
       link_id: linkId,
@@ -48,8 +58,8 @@ exports.handler = async function(event, context) {
         headers: {
           'Content-Type': 'application/json',
           'x-api-version': '2023-08-01',
-          'x-client-id': '12837852c1c2630b2933afd47575873821',
-          'x-client-secret': 'cfsk_ma_prod_40c1f31d15cc89b9d530c818eed8a0e4_1883640b'
+          'x-client-id': APP_ID,
+          'x-client-secret': SECRET_KEY
         }
       };
 
@@ -89,4 +99,3 @@ exports.handler = async function(event, context) {
     };
   }
 };
-  
