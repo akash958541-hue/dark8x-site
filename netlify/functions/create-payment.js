@@ -81,12 +81,29 @@ exports.handler = async function(event, context) {
   return {
     statusCode: 200,
     headers,
-    body: JSON.stringify({ link_url: result.data.link_url, link_id: linkId })
+    body: JSON.stringify({
+      link_url: result.data.link_url,
+      link_id: linkId
+    })
   };
 } else {
   return {
     statusCode: 400,
     headers,
-    body: JSON.stringify({ error: 'Cashfree error', details: result.data })
+    body: JSON.stringify({
+      error: 'Cashfree error',
+      details: result.data
+    })
   };
-    }
+}
+
+} catch (err) {
+  return {
+    statusCode: 500,
+    headers,
+    body: JSON.stringify({
+      error: err.message
+    })
+  };
+}
+};
