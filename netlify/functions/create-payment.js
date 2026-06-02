@@ -78,24 +78,15 @@ exports.handler = async function(event, context) {
     });
 
     if (result.status === 200 && result.data.link_url) {
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({ link_url: result.data.link_url, link_id: linkId })
-      };
-    } else {
-      return {
-        statusCode: 400,
-        headers,
-        body: JSON.stringify({ error: 'Cashfree error', details: result.data })
-      };
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify({ link_url: result.data.link_url, link_id: linkId })
+  };
+} else {
+  return {
+    statusCode: 400,
+    headers,
+    body: JSON.stringify({ error: 'Cashfree error', details: result.data })
+  };
     }
-
-  } catch (err) {
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: err.message })
-    };
-  }
-};
