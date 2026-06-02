@@ -307,19 +307,25 @@ async function startPayment() {
         returnUrl: `https://dark8x.netlify.app?status=SUCCESS&orderId=${orderRef.id}`
       })
     });
+const data = await res.json();
 
-    const data = await res.json();
+console.log("Payment Response:", data);
 
-    if (data.link_url) {
-      localStorage.setItem('pending_order_id', orderRef.id);
-      localStorage.setItem('pending_product_id', currentProduct.id);
-      localStorage.setItem('pending_email', email);
-      window.location.href = data.link_url;
-    } else {
-      alert('Payment error! Try again.');
-      btn.disabled = false;
-      btn.textContent = '⚡ PAY NOW';
-    }
+if (data.link_url) {
+  localStorage.setItem('pending_order_id', orderRef.id);
+  localStorage.setItem('pending_product_id', currentProduct.id);
+  localStorage.setItem('pending_email', email);
+  window.location.href = data.link_url;
+} else {
+  alert(
+    'Payment Error:\n' +
+    JSON.stringify(data, null, 2)
+  );
+
+  btn.disabled = false;
+  btn.textContent = '⚡ PAY NOW';
+}
+    
   } catch(e) {
     alert('Error: ' + e.message);
     btn.disabled = false;
